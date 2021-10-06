@@ -24,10 +24,14 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
             };
     },
     [ConstructType.Call](body: NestedToken): Construct<ConstructType.Call> {
-        if (!isToken(body[body.length - 1], ')') || !isToken(body[body.length - 3], '(') || !(body[body.length - 2] instanceof Array))
+        if (!isToken(body[body.length - 1], ')') || !isToken(body[body.length - 3], '(') || !(body[body.length - 2] instanceof Array) || hasTopLevelToken(body, ['=>']))
             return null;
 
         const value = body.slice(0, -3);
+
+        if (value.length <= 0)
+            return null;
+
         const arglist: NestedToken = body[body.length - 2] as NestedToken;
         const args = arglist.length > 0 ? split(arglist, ',') : [];
 
@@ -46,7 +50,7 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
         };
     },
     [ConstructType.Access](body: NestedToken): Construct<ConstructType.Access> {
-        if (!body.some(i => isToken(i, '[')) && body.some(i => isToken(i, ']')))
+        if (!body.some(i => isToken(i, '[')) || !isToken(body[body.length - 1], ']') || hasTopLevelToken(body, ['=>']))
             return null;
 
         let bracket: number = 0;
@@ -70,7 +74,7 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
             const value = body.slice(0, index);
             const chain = body.slice(index);
 
-            if (!chain.every(i => isToken(i, [...valueTokenTypes, '.'])) || !chain.some(i => isToken(i, '.')))
+            if (!chain.every(i => isToken(i, [...valueTokenTypes, '.'])) || !chain.some(i => isToken(i, '.')) || hasTopLevelToken(body, ['=>']))
                 return null;
 
             return {
@@ -81,13 +85,16 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
         }
     },
     [ConstructType.Lambda](body: NestedToken): Construct<ConstructType.Lambda> {
-        const marker = body.findIndex(i => isToken(i, '=>'));
+        const marker = body.findIndex(i => isToken(i, '=>')); // args => args[0] is picked up as an `access` type.
 
         if (marker < 0)
             return null;
 
         const argList = body.slice(0, marker).flat(1);
         const fn = body.slice(marker + 1);
+
+        if (!isToken(argList[0], ['name', '(']))
+            return null;
 
         const argNames: string[] = [];
 
@@ -128,7 +135,8 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
         }
     },
     [ConstructType.Operation](body: NestedToken): Construct<ConstructType.Operation> {
-        if (hasTopLevelToken(body, ['operator'])) {
+        if ((hasTopLevelToken(body, ['operator']) ?? -1) < (hasTopLevelToken(body, ['assignment']) ?? Infinity)) {
+            // If we see an operator and an assignment, the operator must come first, otherwise, it's an assignment
             const expr = postfixExpression(body);
 
             if (expr)
@@ -141,7 +149,7 @@ export const matchers: { [K in ConstructType]: (body: NestedToken) => Construct<
     [ConstructType.Assignment](body: NestedToken): Construct<ConstructType.Assignment> {
         const index = hasTopLevelToken(body, ['assignment']);
 
-        if (index !== null && isToken(body[index], 'assignment'))
+        if (index && (hasTopLevelToken(body, ['operator']) ?? -1) > (index ?? -1))
             return {
                 type: ConstructType.Assignment,
                 assignment: [

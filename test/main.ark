@@ -15,8 +15,11 @@ fn fib(n)
             return next + prev,
             prev = next
 
+fn print(args)
+    io.err("", args[0])
+
 fn main(args)
     io.out(match({
         "stdev": args => stdev(args),
         "fib": args => fib(args[0])
-    }, value: args[0], default: => io.err("", args[0]))(args.slice(1)))
+    }, value: args[0], default: print)(args.slice(1)))

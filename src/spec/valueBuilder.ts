@@ -84,16 +84,16 @@ export function hasTopLevelToken(tokens: NestedToken, types: TokenTypes[] = []):
     for (const [a, i] of tokens.entries()) {
         if (isToken(i, '('))
             brackets[0]++;
-            // else if (isToken(i, '['))
-            //     brackets[1]++;
-            // else if (isToken(i, '{'))
-        //     brackets[2]++;
+        else if (isToken(i, '['))
+            brackets[1]++;
+        else if (isToken(i, '{'))
+            brackets[2]++;
         else if (isToken(i, ')'))
             brackets[0]--;
-        // else if (isToken(i, ']'))
-        //     brackets[1]--;
-        // else if (isToken(i, '}'))
-        //     brackets[2]--;
+        else if (isToken(i, ']'))
+            brackets[1]--;
+        else if (isToken(i, '}'))
+            brackets[2]--;
 
         if (isToken(i, types) && all0())
             return a;
@@ -160,6 +160,8 @@ export default function buildValue(tokens: NestedToken): Value {
             return toBlock(expression);
         else if (expression.length === 1 && expression[0] && isToken(expression[0], valueTokenTypes))
             return expression[0] as Token<typeof valueTokenTypes[number]>;
+        else if (expression.length === 3 && isToken(expression[0], '(') && expression[1] instanceof Array && isToken(expression[2], ')')) // Bracketed expressions
+            return buildValue(expression[1]);
         else {
             const flat = nestByParentheses(flatten(expression).filter(i => !isToken(i, 'newline')));
             // Since unlike blocks, constructs don't rely on newlines, we can get rid of the nesting, unfortunately, the parenthesised nesting is useful, so restore that.

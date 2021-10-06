@@ -1,10 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import util from "util";
-
-import Lex, {Lex_Classic} from "./code/lex";
-import Nest, {toIndents, toLines} from "./code/nest";
-import Parse from "./code/parse";
+import Compile from "./code/Compile";
 
 /**
  * Search for an argument in the CLI arg list
@@ -21,13 +17,15 @@ const arg = function (str: string, fallback: string): string {
 
 const mainFile = path.resolve(arg('--main', '') ?? path.join(process.cwd(), 'main.ark'));
 const fast_lex = arg('--lex-mode', 'fast') === 'fast';
+const out = arg('--out', arg('-o', null));
 
 if (fs.existsSync(mainFile)) {
     const source = await fs.promises.readFile(mainFile, 'utf8');
 
-    const tokens = fast_lex ? Lex(source, mainFile) : Lex_Classic(source, mainFile);
-    const nestedTokens = Nest(toLines(toIndents(tokens)));
-    const AST = Parse(nestedTokens);
+    const AST = Compile(source, {
+        mainFile: mainFile,
+        lex_mode: fast_lex ? 'fast' : 'classic'
+    });
 
-    console.log(util.inspect(AST, false, null, true));
+    // We can assemble the AST and dump it at `out`, or we can interpret it
 }

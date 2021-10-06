@@ -1,3 +1,2 @@
-fn[x] main()
-    do
-        "Hi"
+fn main(args)
+    {x: args => args[0]}
