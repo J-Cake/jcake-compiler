@@ -1,0 +1,20 @@
+{
+    "name": "jcake-compiler",
+    "version": "1.0.0",
+    "description": "",
+    "main": "build/compiler.js",
+    "type": "module",
+    "scripts": {
+        "compile": "node build/compiler.js",
+        "build:compile": "esbuild ./src/index.ts --outfile=./build/compiler.js --platform=node --target=node16 --bundle --sourcemap --format=esm"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+
+    "devDependencies": {
+        "esbuild": "latest",
+        "typescript": "latest",
+        "@types/node": "latest"
+    }
+}

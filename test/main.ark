@@ -1,0 +1,22 @@
+import io
+import utils.match
+import list.slice
+import math.sqrt::sum
+
+fn stdev(numbers)
+    do[mean, variance]
+        mean = sum(numbers) / numbers.len,
+        variance = sum((numbers - mean) ** 2) / numbers.len,
+        sqrt(variance)
+
+fn fib(n)
+    repeat[next, prev] n
+        next = do
+            return next + prev,
+            prev = next
+
+fn main(args)
+    io.out(match({
+        "stdev": args => stdev(args),
+        "fib": args => fib(args[0])
+    }, value: args[0], default: => io.err("", args[0]))(args.slice(1)))
