@@ -1,0 +1,20 @@
+import[math] './math.js'
+
+fn number(number)
+    {
+        __ark_operator_add: (a, b) => number(sum(a, b)),
+        __ark_operator_subtract: (a, b) => number(difference(a, b)),
+        __ark_operator_multiply: (a, b) => number(product(a, b)),
+        __ark_operator_divide: (a, b) => number(quotient(a, b)),
+        __ark_operator_modulo: (a, b) => number(remainder(a, b)),
+        __ark_operator_exponent: (a, b) => number(exponent(a, b)),
+
+        __ark_operator_greater: (a, b) => boolean(greater(a, b)),
+        __ark_operator_less: (a, b) => boolean(less(a, b)),
+        __ark_operator_greater_equal: (a, b) => boolean(greater_equal(a, b)),
+        __ark_operator_less_equal: (a, b) => boolean(less_equal(a, b)),
+        __ark_operator_equal: (a, b) => boolean(equal(a, b))
+    }
+
+fn sqrt(a)
+    math.sqrt(a)

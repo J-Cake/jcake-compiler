@@ -1,6 +1,6 @@
-import {Block, NestedToken, Token} from "../spec/index";
-import {BlockTypes, detectBlockType} from "../spec/block";
-import {BlockBuilder} from "../spec/blockBuilder";
+import {Block, NestedToken, Token} from "./spec/index";
+import {BlockTypes, detectBlockType} from "./spec/block";
+import {BlockBuilder} from "./spec/blockBuilder";
 
 /**
  * Parse a list of tokens to a `Block`
@@ -61,6 +61,7 @@ export default function Parse(tokens: NestedToken, declarations: Token<'name'>[]
         type: BlockTypes.Closure,
         declarations: declarations,
         symbols: fetchSymbols(tokens),
+        origin: (tokens.find(i => 'origin' in i) as Token).origin as Token['origin'],
         name: name
     };
 }

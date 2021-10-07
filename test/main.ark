@@ -1,7 +1,7 @@
 import io
 import utils.match
 import list.slice
-import math.sqrt::sum
+import[sqrt, sum] math
 
 fn stdev(numbers)
     do[mean, variance]

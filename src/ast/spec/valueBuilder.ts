@@ -3,7 +3,7 @@ import {operators, TokenTypes} from "./lexer";
 import {isToken} from "./blockBuilder";
 import {Expression} from "./construct";
 import {detectBlockType} from "./block";
-import {toBlock} from "../code/parse";
+import {toBlock} from "../parse";
 import {matchers} from "./value";
 
 /**
@@ -150,7 +150,7 @@ export const flatten: <T>(arr: DeepArray<T>) => T[] = <T>(arr: DeepArray<T>, res
 
 /**
  * Parse a list of tokens into a Value
- * @param tokens The tokens to parse
+ * @param tokens The tokens to ast
  */
 export default function buildValue(tokens: NestedToken): Value {
     const expression = tokens.filter(i => !isToken(i, 'newline'));

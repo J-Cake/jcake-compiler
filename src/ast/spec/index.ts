@@ -21,7 +21,8 @@ export type Token<Type extends TokenTypes = TokenTypes> = {
 
 export type BlockContainer<Type extends BlockTypes, Data extends {}> = Data & {
     type: Type,
-    declarations: Token<'name'>[]
+    declarations: Token<'name'>[],
+    origin: Token['origin']
     // Other common properties
 };
 

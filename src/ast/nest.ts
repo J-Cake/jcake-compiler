@@ -1,4 +1,4 @@
-import {NestedToken, Token} from "../spec/index";
+import {NestedToken, Token} from "./spec/index";
 
 /**
  * Convert a list of lines into a NestedToken, taking whitespace and indents into account

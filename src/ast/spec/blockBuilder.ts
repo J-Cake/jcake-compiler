@@ -1,6 +1,6 @@
 import {BlockTypes, identifier} from "./block";
 import {Block, NestedToken, Token} from "./index";
-import Parse from "../code/parse";
+import Parse from "../parse";
 import {TokenTypes} from "./lexer";
 import buildValue, {nestByParentheses, split} from "./valueBuilder";
 
@@ -36,7 +36,8 @@ export function isToken(token: Token | NestedToken, type?: TokenTypes | readonly
  */
 export function getOptionalDeclarations(tokens: NestedToken, blockType: BlockTypes): {
     body: NestedToken,
-    declarations: Token<'name'>[]
+    declarations: Token<'name'>[],
+    origin: Token['origin']
 } | null {
     if (!isToken(tokens[0], 'keyword', identifier[blockType]))
         return null;
@@ -49,25 +50,28 @@ export function getOptionalDeclarations(tokens: NestedToken, blockType: BlockTyp
             else if (isToken(i, ']'))
                 return {
                     body: tokens.slice(tokens.findIndex(i => isToken(i, ']')) + 1),
-                    declarations: declarations
+                    declarations: declarations,
+                    origin: (tokens.find(i => 'origin' in i) as Token).origin
                 };
 
     return {
         body: tokens.slice(1),
-        declarations: declarations
+        declarations: declarations,
+        origin: (tokens.find(i => 'origin' in i) as Token).origin
     };
 }
 
 export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K> } = {
     [BlockTypes.Import](tokens: NestedToken) {
-        const allowed: TokenTypes[] = ['name', '.'];
+        const allowed: TokenTypes[] = ['name', 'string', '.'];
         const val = getOptionalDeclarations(tokens, BlockTypes.Import);
 
         if (val && val.body.every(i => isToken(i, allowed)))
             return {
                 type: BlockTypes.Import,
-                symbols: val.body as Token<'name' | '.'>[],
+                symbols: val.body as Token<'name' | 'string' | '.'>[],
                 declarations: val.declarations,
+                origin: val.origin
             }
         throw `Invalid Import`;
     },
@@ -90,6 +94,7 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.If,
                 declarations: val.declarations,
+                origin: val.origin,
 
                 condition: buildValue(nestByParentheses(val.body.slice(0, expr))),
                 value: buildValue(nestByParentheses(val.body.slice(expr))),
@@ -105,6 +110,7 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.Else,
                 declarations: val.declarations,
+                origin: val.origin,
 
                 value: buildValue(nestByParentheses(val.body)),
 
@@ -119,6 +125,8 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.Do,
                 declarations: val.declarations,
+                origin: val.origin,
+
                 steps: split(val.body.slice(val.body.findIndex(i => i instanceof Array)).flat(1), ',').map(i => buildValue(nestByParentheses(i)))
             }
         else
@@ -135,6 +143,7 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.Each,
                 declarations: val.declarations,
+                origin: val.origin,
 
                 iteratorName: (val.body[0] as Token<'name'>).src,
                 iteratee: buildValue(nestByParentheses(val.body.slice(2, expr))),
@@ -152,6 +161,7 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.Repeat,
                 declarations: val.declarations,
+                origin: val.origin,
 
                 repeat: buildValue(nestByParentheses(val.body.slice(0, expr))),
                 value: buildValue(nestByParentheses(val.body.slice(expr).flat(1)))
@@ -172,6 +182,7 @@ export const BlockBuilder: { [K in BlockTypes]: (tokens: NestedToken) => Block<K
             return {
                 type: BlockTypes.Function,
                 declarations: val.declarations,
+                origin: val.origin,
 
                 name: (name as Token<'name'>).src,
                 args: (val.body.slice(1, expr - 1).filter(i => isToken(i, 'name')) as Token<'name'>[]).map(i => i.src),

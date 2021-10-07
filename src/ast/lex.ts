@@ -1,5 +1,5 @@
-import {matchers} from "../spec/lexer";
-import {Token} from "../spec/index";
+import {matchers} from "./spec/lexer";
+import {Token} from "./spec/index";
 
 /**
  * checks to ensure the given token matches a provided matcher function.
@@ -56,7 +56,7 @@ export default function Lex(input: string, file?: string): Token[] {
         return char;
     }, "");
 
-    return tokens;
+    return tokens.filter(i => i.type !== 'comment');
 };
 
 /**
@@ -107,5 +107,5 @@ export function Lex_Classic(input: string, file?: string): Token[] {
         }
     }
 
-    return tokens;
+    return tokens.filter(i => i.type !== 'comment');
 }
